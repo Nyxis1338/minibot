@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # MiniBot 轻量化QQ群AI机器人
 
 基于 Python + NapCat + OneBot11 自研轻量化机器人框架。  
@@ -113,6 +114,10 @@ python main.py
 
 ## 项目文件完整目录结构
 
+=======
+# MiniBot
+下方是最初的架构，实际有增减
+>>>>>>> 5bca6238697db87b9adac13099299465c6d758e1
 ```text
 MiniBot/
 ├── main.py                # 程序入口，信号捕获、Web服务启动
