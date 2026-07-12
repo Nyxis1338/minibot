@@ -1,73 +1,71 @@
 import asyncio
 import websockets
-import json
-from urllib.parse import urlparse, parse_qs
-from typing import Callable, Coroutine, Any
-from core.runtime_cfg import get_onebot
+from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+from typing import Set
 
 class OneBotWSAdapter:
-    def __init__(self, msg_handler: Callable[[dict], Coroutine[Any, Any, None]]):
-        self.msg_handler = msg_handler
-        self.ws_server = None
-        self.clients = set()
+    def __init__(self, host: str, port: int, token: str):
+        self.host = host
+        self.port = port
+        self.token = token
+        self.clients: Set[websockets.WebSocketServerProtocol] = set()
+        self.server = None
         self.running = False
+        self.event_handler = None
 
-    async def handle_client(self, websocket):
-        path = websocket.request.path
-        parsed = urlparse(path)
-        params = parse_qs(parsed.query)
-        url_token = params.get("access_token", [None])[0]
-        header_auth = websocket.request.headers.get("Authorization", "")
-        header_token = None
-        if header_auth and header_auth.startswith("Bearer "):
-            header_token = header_auth[7:]
-        real_token = url_token if url_token else header_token
-        expect_token = get_onebot()["token"]
-        if real_token != expect_token:
-            print(f"NapCat鉴权失败，token不匹配")
-            await websocket.close(1008)
+    def set_event_handler(self, handler):
+        self.event_handler = handler
+
+    async def handle_conn(self, websocket):
+        # Token鉴权
+        path = websocket.path
+        token_ok = False
+        if "?" in path:
+            query_str = path.split("?")[1]
+            params = dict(p.split("=") for p in query_str.split("&") if "=" in p)
+            token_ok = params.get("token", "") == self.token
+        if not token_ok:
+            print(f"[WS] 收到非法连接，Token校验失败，断开")
+            await websocket.close(code=1008, reason="token invalid")
             return
-        print("✅ NapCat 成功接入WS")
+
+        print(f"[WS] NapCat 反向WS连接建立成功！")
         self.clients.add(websocket)
         try:
             async for raw in websocket:
                 try:
-                    event = json.loads(raw)
-                    coro = self.msg_handler(event)
-                    asyncio.create_task(coro)
-                except json.JSONDecodeError:
-                    continue
+                    data = eval(raw) if raw.startswith("{") else None
+                    if data and self.event_handler:
+                        asyncio.create_task(self.event_handler(data))
+                except Exception as e:
+                    print(f"[WS] 消息解析异常: {str(e)}")
+        except (ConnectionClosedOK, ConnectionClosedError):
+            print(f"[WS] NapCat 连接断开，等待重连...")
         finally:
-            self.clients.remove(websocket)
+            self.clients.discard(websocket)
 
-    async def send_group_msg(self, group_id: int, message: str):
-        send_json = json.dumps({
-            "action": "send_group_msg",
-            "params": {"group_id": group_id, "message": message}
-        })
-        for cli in self.clients:
-            try:
-                await cli.send(send_json)
-            except Exception:
-                continue
-
-    async def start(self):
-        cfg = get_onebot()
-        host = cfg["listen_host"]
-        port = cfg["listen_port"]
-        self.ws_server = await websockets.serve(self.handle_client, host, port)
+    async def start_server(self):
         self.running = True
-        print(f"WS服务启动 ws://{host}:{port}")
-        if self.ws_server:
-            async with self.ws_server:
-                await self.ws_server.serve_forever()
+        while self.running:
+            try:
+                print(f"[WS] 正在启动监听 {self.host}:{self.port}，等待NapCat反向连接...")
+                self.server = await websockets.serve(
+                    self.handle_conn,
+                    host=self.host,
+                    port=self.port
+                )
+                await self.server.wait_closed()
+            except Exception as e:
+                print(f"[WS] 服务异常，5秒后自动重试: {str(e)}")
+                await asyncio.sleep(5)
 
-    async def stop(self):
+    async def stop_server(self):
         self.running = False
-        if self.ws_server:
-            self.ws_server.close()
-            await self.ws_server.wait_closed()
-        close_tasks = [cli.close() for cli in self.clients]
-        await asyncio.gather(*close_tasks, return_exceptions=True)
+        if self.server:
+            self.server.close()
+            await self.server.wait_closed()
+        # 断开所有现有NapCat连接
+        for cli in list(self.clients):
+            await cli.close()
         self.clients.clear()
-        print("WS适配器已停止")
+        print("[WS] WS监听服务已完全停止")

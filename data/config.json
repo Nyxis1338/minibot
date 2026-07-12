@@ -35,8 +35,8 @@
   },
   "group_rules": {
     "1051349566": {
-      "bind_llm": "deepseek",
-      "bind_persona": "大女主",
+      "bind_llm": "qwen",
+      "bind_persona": "搞笑搭子",
       "random_prob": 0.7,
       "cooldown_sec": 30
     }

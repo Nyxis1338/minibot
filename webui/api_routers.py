@@ -1,9 +1,9 @@
+import re
+import aiohttp
 from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel
-import aiohttp
 from config.config_mgr import cfg_mgr
 from core.bot_state import start_bot, stop_bot, get_bot_status
-import re
 
 router = APIRouter(prefix="/api")
 
@@ -40,11 +40,15 @@ class PersonaModel(BaseModel):
     name: str
     prompt: str
 
+# 新增开关、上下文长度字段
 class GroupRuleModel(BaseModel):
     bind_llm: str
     bind_persona: str
     random_prob: float
     cooldown_sec: int
+    enable_at_reply: bool
+    enable_random_chat: bool
+    context_max_len: int
 
 # LLM测试请求模型
 class LLMTestBody(BaseModel):
@@ -88,6 +92,22 @@ async def save_full_config(data: dict = Body()):
         return {"code": 0, "msg": "配置已保存到文件，重启机器人生效"}
     except Exception as e:
         return {"code": -1, "msg": f"保存失败：{str(e)}"}
+
+@router.get("/config/export")
+async def export_cfg():
+    return {"code": 0, "data": cfg_mgr.load_file()}
+
+@router.get("/persona/list")
+async def list_persona():
+    cfg = cfg_mgr.load_file()
+    return {"code": 0, "data": cfg["personas"]}
+
+@router.post("/persona/save")
+async def save_persona(item: PersonaModel = Body()):
+    cfg = cfg_mgr.load_file()
+    cfg["personas"][item.name] = item.prompt
+    cfg_mgr.save_file(cfg)
+    return {"code": 0, "msg": "人设保存成功"}
 
 @router.delete("/persona/del")
 async def del_persona(name: str = Query()):
@@ -137,7 +157,7 @@ async def del_llm(name: str = Query()):
         cfg_mgr.save_file(cfg)
     return {"code": 0, "msg": "模型配置已删除"}
 
-# 【修复后】LLM连通测试接口，正确接收JSON Body
+# LLM连通测试，区分402欠费提示
 @router.post("/llm/test_connect")
 async def test_llm_connect(body: LLMTestBody = Body()):
     headers = {
@@ -158,9 +178,13 @@ async def test_llm_connect(body: LLMTestBody = Body()):
                 resp_text = await resp.text()
                 if resp.status == 200:
                     return {"code": 0, "msg": "接口连通正常"}
+                elif resp.status == 402:
+                    return {"code": 1, "msg": "⚠️ 402 账户余额/免费额度不足，请充值或更换可用API Key"}
+                elif resp.status == 401:
+                    return {"code": 1, "msg": "⚠️ 401 API密钥错误/密钥已过期，请核对密钥"}
                 else:
                     return {"code": 1, "msg": f"HTTP{resp.status} 错误返回：{resp_text[:300]}"}
-    except aiohttp.ClientError as e:
-        return {"code": 1, "msg": f"网络连接失败：{str(e)}"}
+    except aiohttp.ClientError:
+        return {"code": 1, "msg": "网络连接失败，无法访问模型接口，检查网络或接口地址"}
     except Exception as e:
         return {"code": 1, "msg": f"未知异常：{str(e)}"}

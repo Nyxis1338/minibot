@@ -6,5 +6,15 @@
   },
   "llm_providers": {},
   "personas": {},
-  "group_rules": {}
+  "group_rules": {
+    "示例群号": {
+      "bind_llm": "",
+      "bind_persona": "",
+      "random_prob": 0.12,
+      "cooldown_sec": 120,
+      "enable_at_reply": true,
+      "enable_random_chat": true,
+      "context_max_len": 8
+    }
+  }
 }

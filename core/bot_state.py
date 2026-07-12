@@ -1,82 +1,71 @@
 import asyncio
-from typing import Dict
-from llm.base import BaseLLM
 from adapters.onebot_v11.ws_server import OneBotWSAdapter
-from core.event_handler import handle_event, set_ws_adapter
-from core.runtime_cfg import load_runtime_config, get_onebot, get_all_llm_names
-from llm.deepseek_provider import DeepSeekLLM
-from llm.zhipu_provider import ZhipuLLM
-from llm.qwen_provider import QwenLLM
+from core.event_handler import set_ws_adapter
+from config.config_mgr import cfg_mgr
 
-IS_BOT_RUNNING = False
-WS_ADAPTER: OneBotWSAdapter | None = None
-WS_TASK: asyncio.Task | None = None
-# 多模型实例池 key=厂商标识
-LLM_POOL: Dict[str, BaseLLM] = {}
+ws_adapter: OneBotWSAdapter | None = None
+ws_task = None
+bot_running = False
 
-def get_llm_by_name(name: str) -> BaseLLM | None:
-    return LLM_POOL.get(name)
+async def start_bot() -> tuple[bool, str]:
+    global ws_adapter, ws_task, bot_running
+    if bot_running:
+        return False, "机器人已在运行，无需重复启动"
 
-async def start_bot():
-    global IS_BOT_RUNNING, WS_ADAPTER, WS_TASK, LLM_POOL
-    if IS_BOT_RUNNING:
-        return False, "机器人已在运行中"
-    load_runtime_config()
-    LLM_POOL.clear()
-    # 初始化所有配置内存在的模型厂商
-    all_llm = get_all_llm_names()
-    for name in all_llm:
+    cfg = cfg_mgr.load_file()
+    ob_cfg = cfg["onebot"]
+    host = ob_cfg["listen_host"]
+    port = ob_cfg["listen_port"]
+    token = ob_cfg["token"]
+
+    # 初始化WS适配器
+    ws_adapter = OneBotWSAdapter(host, port, token)
+    from core.event_handler import handle_event
+    ws_adapter.set_event_handler(handle_event)
+    set_ws_adapter(ws_adapter)
+
+    # 后台异步启动WS循环监听（自动重连）
+    loop = asyncio.get_event_loop()
+    ws_task = loop.create_task(ws_adapter.start_server())
+    bot_running = True
+    return True, "机器人启动成功，持续等待NapCat连接"
+
+async def stop_bot() -> tuple[bool, str]:
+    global ws_adapter, ws_task, bot_running
+    if not bot_running or ws_adapter is None:
+        return False, "机器人当前未运行"
+
+    await ws_adapter.stop_server()
+    if ws_task:
+        ws_task.cancel()
         try:
-            if name == "deepseek":
-                ins = DeepSeekLLM()
-                LLM_POOL[name] = ins
-            elif name == "zhipu":
-                ins = ZhipuLLM()
-                LLM_POOL[name] = ins
-            elif name == "qwen":
-                ins = QwenLLM()
-                LLM_POOL[name] = ins
-            print(f"[Bot] 加载模型厂商 {name} 完成")
-        except Exception as e:
-            print(f"[Bot] 厂商 {name} 初始化失败：{e}")
-    # 启动WS
-    ws_cfg = get_onebot()
-    WS_ADAPTER = OneBotWSAdapter(msg_handler=handle_event)
-    set_ws_adapter(WS_ADAPTER)
-    WS_TASK = asyncio.create_task(WS_ADAPTER.start())
-    IS_BOT_RUNNING = True
-    print("[Bot] 机器人启动成功，WS服务等待NapCat连接")
-    return True, "启动成功"
-
-async def stop_bot():
-    global IS_BOT_RUNNING, WS_ADAPTER, WS_TASK, LLM_POOL
-    if not IS_BOT_RUNNING:
-        return False, "机器人未启动"
-    # 1、停止WS适配器
-    if WS_ADAPTER is not None:
-        try:
-            await WS_ADAPTER.stop()
-        except Exception as e:
-            print(f"[Stop Warn] WS适配器关闭异常：{e}")
-    # 2、取消WS后台任务
-    if WS_TASK is not None:
-        WS_TASK.cancel()
-        try:
-            await WS_TASK
-        except (asyncio.CancelledError, Exception):
+            await ws_task
+        except asyncio.CancelledError:
             pass
-    # 3、逐个关闭所有LLM aiohttp会话
-    close_coros = []
-    for ins in LLM_POOL.values():
-        close_coros.append(ins.close())
-    if close_coros:
-        await asyncio.gather(*close_coros, return_exceptions=True)
-    LLM_POOL.clear()
-    IS_BOT_RUNNING = False
-    WS_ADAPTER = None
-    WS_TASK = None
-    print("[Bot] 机器人所有资源已停止释放")
-    return True, "停止成功"
+    bot_running = False
+    ws_adapter = None
+    ws_task = None
+    return True, "机器人已停止，不再监听NapCat连接"
 
 def get_bot_status():
-    return {"running": IS_BOT_RUNNING}
+    global bot_running, ws_adapter
+    connect_count = len(ws_adapter.clients) if ws_adapter else 0
+    return {
+        "running": bot_running,
+        "napcat_connected_count": connect_count
+    }
+
+def get_llm_by_name(name: str):
+    cfg = cfg_mgr.load_file()
+    llm_list = cfg["llm_providers"]
+    if name not in llm_list:
+        return None
+    llm_info = llm_list[name]
+    from core.llm.base import LLMClient
+    return LLMClient(
+        api_key=llm_info["api_key"],
+        base_url=llm_info["base_url"],
+        model=llm_info["model"],
+        temp=llm_info["temperature"],
+        max_tokens=llm_info["max_tokens"]
+    )
