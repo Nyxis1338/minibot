@@ -17,6 +17,14 @@
 <div id="botStatus" style="margin-top:10px;color:#666">加载状态中...</div>
 </div>
 
+<!-- 配置备份管理【新增，不改动原有任何模块】 -->
+<div class="card">
+    <h3>💾 配置备份管理</h3>
+    <button class="btn-blue" onclick="exportAllConfig()">导出全部配置备份</button>
+    <label>导入配置JSON文件</label>
+    <input type="file" id="importConfigFile" accept=".json" onchange="importConfigFile()">
+</div>
+
 <!-- OneBot WS配置 -->
 <div class="card">
 <h3>⚙️ OneBot WS服务配置</h3>
@@ -34,6 +42,12 @@
 <h3>🧠 大模型厂商管理</h3>
 <div class="row">
 <div class="col">
+<label>模型厂商 provider_type</label>
+<select id="llmProviderType">
+    <option value="deepseek">DeepSeek</option>
+    <option value="zhipu">智谱GLM</option>
+    <option value="qwen">通义千问</option>
+</select>
 <label>厂商标识（英文不可修改）</label>
 <input id="llmName" placeholder="deepseek / glm">
 <label>API Key</label>

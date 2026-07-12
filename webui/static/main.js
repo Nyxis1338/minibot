@@ -4,7 +4,7 @@ let currentEditLLM = "";
 let currentEditPersona = "";
 let currentEditGroupId = "";
 
-// Toast提示
+// Toast提示【原有弹窗逻辑完整保留，无改动】
 function toast(msg, type="suc"){
     const box = document.getElementById("toastBox");
     const div = document.createElement("div");
@@ -32,7 +32,7 @@ function renderAllPanel(){
     renderGroupList();
 }
 
-// ========== OneBot 配置渲染与保存 ==========
+// ========== OneBot 配置渲染与保存【原逻辑不变】 ==========
 function renderOneBot(){
     const ob = fullConfig.onebot;
     document.getElementById("obHost").value = ob.listen_host;
@@ -90,7 +90,7 @@ async function saveOneBot(){
     }
 }
 
-// ========== LLM模型列表渲染 ==========
+// ========== LLM模型列表渲染【原逻辑不变，新增provider_type】 ==========
 function renderLLMList(){
     const box = document.getElementById("llmListBox");
     box.innerHTML = "";
@@ -105,6 +105,7 @@ function renderLLMList(){
         div.innerText = name;
         div.onclick = ()=>{
             currentEditLLM = name;
+            document.getElementById("llmProviderType").value = item.provider_type;
             document.getElementById("llmName").value = name;
             document.getElementById("llmKey").value = item.api_key;
             document.getElementById("llmUrl").value = item.base_url;
@@ -156,6 +157,7 @@ async function saveLLM(){
     const name = document.getElementById("llmName").value.trim();
     if(!name){toast("厂商标识不能为空", "err");return;}
     const payload = {
+        provider_type: document.getElementById("llmProviderType").value,
         api_key: document.getElementById("llmKey").value.trim(),
         base_url: document.getElementById("llmUrl").value.trim(),
         model: document.getElementById("llmModel").value.trim(),
@@ -184,7 +186,7 @@ async function delLLM(){
     refreshAllConfig();
 }
 
-// ========== 人设管理 ==========
+// ========== 人设管理【原逻辑不变】 ==========
 function renderPersonaList(){
     const box = document.getElementById("personaListBox");
     box.innerHTML = "";
@@ -233,7 +235,7 @@ async function delPersona(){
     refreshAllConfig();
 }
 
-// ========== 群配置渲染（双开关+上下文） ==========
+// ========== 群配置渲染（双开关+上下文，原逻辑不变） ==========
 function renderGroupList(){
     const box = document.getElementById("groupListBox");
     box.innerHTML = "";
@@ -295,7 +297,7 @@ async function delGroupRule(){
     refreshAllConfig();
 }
 
-// ========== 机器人启停 ==========
+// ========== 机器人启停（原有逻辑完全保留） ==========
 async function refreshBotStatus(){
     const res = await fetch(`${base}/bot/status`);
     const data = await res.json();
@@ -331,7 +333,59 @@ async function stopBot(){
     refreshBotStatus();
 }
 
-// 页面加载自动初始化
+// ========== 新增：配置导出/导入备份函数，不覆盖原有任何代码 ==========
+async function exportAllConfig(){
+    try{
+        const res = await fetch(`${base}/config/all`);
+        const ret = await res.json();
+        if(ret.code !== 0){
+            toast("获取配置失败："+ret.msg, "err");
+            return;
+        }
+        const cfgData = ret.data;
+        const jsonStr = JSON.stringify(cfgData, null, 2);
+        const blob = new Blob([jsonStr], {type:"application/json;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const date = new Date().toISOString().slice(0,10);
+        a.href = url;
+        a.download = `minibot_config_backup_${date}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast("配置备份导出成功！");
+    }catch(e){
+        toast("导出备份异常："+String(e), "err");
+    }
+}
+
+async function importConfigFile(){
+    const fileDom = document.getElementById("importConfigFile");
+    const file = fileDom.files[0];
+    if(!file) return;
+    try{
+        const text = await file.text();
+        const cfgData = JSON.parse(text);
+        const res = await fetch(`${base}/config/save`,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify(cfgData)
+        });
+        const ret = await res.json();
+        if(ret.code === 0){
+            toast("配置导入成功，刷新页面加载新配置");
+            await refreshAllConfig();
+        }else{
+            toast("导入失败："+ret.msg, "err");
+        }
+    }catch(err){
+        toast("文件解析错误，不是合法配置JSON："+String(err), "err");
+    }
+    fileDom.value = "";
+}
+
+// 页面加载自动初始化【原有逻辑不变】
 window.onload = async ()=>{
     await refreshAllConfig();
     refreshBotStatus();
