@@ -1,21 +1,20 @@
 import aiohttp
 from llm.base import BaseLLM
-from config.config_mgr import cfg_mgr
+from core.runtime_cfg import get_llm_provider
 
 class DeepSeekLLM(BaseLLM):
     def __init__(self):
-        llm_cfg = cfg_mgr.config["llm"]
-        self.api_key = llm_cfg["api_key"].strip()
-        self.base_url = llm_cfg["base_url"].rstrip("/")
+        provider_cfg = get_llm_provider("deepseek")
+        self.api_key = provider_cfg["api_key"].strip()
+        self.base_url = provider_cfg["base_url"].rstrip("/")
         self.url = f"{self.base_url}/chat/completions"
-        self.model = llm_cfg["model"]
-        self.temp = llm_cfg["temperature"]
-        self.max_tokens = llm_cfg["max_tokens"]
+        self.model = provider_cfg["model"]
+        self.temp = provider_cfg["temperature"]
+        self.max_tokens = provider_cfg["max_tokens"]
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json; charset=utf-8"
         }
-        # 全局复用连接会话，只创建一次连接池
         self.session: aiohttp.ClientSession | None = None
 
     async def get_session(self) -> aiohttp.ClientSession:
@@ -26,7 +25,12 @@ class DeepSeekLLM(BaseLLM):
 
     async def close(self):
         if self.session and not self.session.closed:
-            await self.session.close()
+            try:
+                await self.session.close()
+            except Exception:
+                pass
+            self.session = None
+
 
     async def chat(self, system_prompt: str, user_text: str) -> str:
         payload = {
@@ -41,11 +45,19 @@ class DeepSeekLLM(BaseLLM):
         try:
             session = await self.get_session()
             async with session.post(self.url, json=payload, headers=self.headers) as resp:
-                print(f"[LLM Debug] HTTP状态码: {resp.status}")
                 raw_text = await resp.text()
                 if resp.status != 200:
-                    return f"AI接口异常 状态码{resp.status}，返回：{raw_text}"
+                    raise Exception(f"HTTP {resp.status} 返回：{raw_text}")
                 res = await resp.json()
                 return res["choices"][0]["message"]["content"].strip()
+        except (aiohttp.ClientError, ConnectionResetError, OSError) as e:
+            # 连接断开主动销毁会话，下次请求自动重建
+            if self.session is not None:
+                await self.session.close()
+                self.session = None
+            raise Exception(f"连接断开：{str(e)}")
         except Exception as e:
-            return f"AI调用失败：{str(e)}"
+            raise e
+
+
+

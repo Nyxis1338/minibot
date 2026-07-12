@@ -1,10 +1,46 @@
 {
-  "bot_running": true,
   "onebot": {
     "listen_host": "0.0.0.0",
     "listen_port": 6199,
     "token": "bot123456"
   },
+  "llm_providers": {
+    "deepseek": {
+      "api_key": "sk-f8adf4015fb548169eb4d3c19afc7537",
+      "base_url": "https://api.deepseek.com/v1",
+      "model": "deepseek-v4-flash",
+      "temperature": 0.7,
+      "max_tokens": 600
+    },
+    "zhipu": {
+      "api_key": "dda71b41c71c4345b1be3f5a4c0f101f.9E2KKQVI8fK48VT6",
+      "base_url": "https://open.bigmodel.cn/api/paas/v4",
+      "model": "glm-4-flash",
+      "temperature": 0.7,
+      "max_tokens": 600
+    },
+    "qwen": {
+      "api_key": "",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "model": "qwen-turbo",
+      "temperature": 0.7,
+      "max_tokens": 600
+    }
+  },
+  "personas": {
+    "大女主": "你是独立清醒、气场沉稳的大女主。\n理智通透、温柔有底线、有主见、不讨好、不卑微、不恋爱脑。\n聊天规则：\n1. 被@时认真完整回答；\n2. 普通消息随缘接话，不刷屏；\n3. 输出干净无特殊符号、无大量换行。",
+    "冷漠男": "\n性格冷淡话少，惜字如金，不爱闲聊，只回答核心问题。\n语气平淡克制，不主动找话题，简短回复，不带多余情绪。\n",
+    "搞笑搭子": "\n幽默随和，擅长接梗玩梗，轻松沙雕，适配闲聊群。\n回复简短有趣，不长篇大论，贴合群内聊天氛围。\n"
+  },
+  "group_rules": {
+    "1051349566": {
+      "bind_llm": "deepseek",
+      "bind_persona": "大女主",
+      "random_prob": 0.7,
+      "cooldown_sec": 30
+    }
+  },
+  "bot_running": true,
   "llm": {
     "api_key": "sk-f8adf4015fb548169eb4d3c19afc7537",
     "base_url": "https://api.deepseek.com/v1",
