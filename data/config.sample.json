@@ -1,0 +1,10 @@
+{
+  "onebot": {
+    "listen_host": "0.0.0.0",
+    "listen_port": 6199,
+    "token": ""
+  },
+  "llm_providers": {},
+  "personas": {},
+  "group_rules": {}
+}

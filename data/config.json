@@ -2,7 +2,8 @@
   "onebot": {
     "listen_host": "0.0.0.0",
     "listen_port": 6199,
-    "token": "bot123456"
+    "token": "bot123456",
+    "host": "0.0.0.1"
   },
   "llm_providers": {
     "deepseek": {
@@ -20,8 +21,8 @@
       "max_tokens": 600
     },
     "qwen": {
-      "api_key": "",
-      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "api_key": "sk-ws-H.EMXIPPE.Q9o3.MEQCIG6iR4wbE21AO9uhtQCviJpFF9ttVR2dY6kGhGwCEqXeAiBk0Jrh2nn9bl9Psk1VYjuA0J3wZhOFzoW-ndRACuoDTg",
+      "base_url": "https://ws-oacfyfis2eq1zqak.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
       "model": "qwen-turbo",
       "temperature": 0.7,
       "max_tokens": 600

@@ -56,11 +56,13 @@ hr{margin:18px 0;border:0;border-top:1px solid #e2e8f0}
 <!-- OneBot基础配置 -->
 <div class="card">
 <h3>⚙️ OneBot WS 服务配置</h3>
+<label>监听 Host</label>
+<input id="obHost" placeholder="0.0.0.0 局域网访问 / 127.0.0.1 仅本机" value="0.0.0.0">
 <label>监听端口 listen_port</label>
-<input id="obPort" placeholder="默认6199">
+<input id="obPort" placeholder="默认6199" value="6199">
 <label>访问鉴权 Token</label>
-<input id="obToken" placeholder="机器人通信密钥">
-<button class="btn-blue" onclick="saveOneBot()">保存OneBot配置</button>
+<input id="obToken" placeholder="与NapCat反向WS Token保持一致">
+<button onclick="saveOneBot()" class="btn-green">保存OneBot配置</button>
 </div>
 
 <!-- LLM模型厂商管理 -->
@@ -87,12 +89,16 @@ hr{margin:18px 0;border:0;border-top:1px solid #e2e8f0}
 <input id="llmTemp" value="0.7">
 <label>max_tokens 最大输出长度</label>
 <input id="llmMax" value="600">
+<div style="margin:10px 0;">
+    <button class="btn-blue" onclick="testLLMConnect()">🔍 测试接口连通性</button>
+</div>
 <div class="modal-foot">
 <button class="btn-gray" onclick="closeLLMModal()">取消</button>
 <button class="btn-green" onclick="submitLLM()">保存</button>
 </div>
 </div>
 </div>
+
 
 <!-- 人设库管理 -->
 <div class="card">
@@ -221,12 +227,33 @@ async function exportConfig(){
 // OneBot配置渲染与保存
 function renderOneBot(){
     const ob = fullConfig.onebot;
+    document.getElementById("obHost").value = ob.listen_host;
     document.getElementById("obPort").value = ob.listen_port;
     document.getElementById("obToken").value = ob.token;
 }
 async function saveOneBot(){
+    fullConfig.onebot.listen_host = document.getElementById("obHost").value.trim();
     fullConfig.onebot.listen_port = Number(document.getElementById("obPort").value);
     fullConfig.onebot.token = document.getElementById("obToken").value.trim();
+    // 1、判空
+    if(!hostVal){
+        toast("监听Host不能为空！", "err");
+        return;
+    }
+    // 2、IP格式校验
+    if(!checkListenHostValid(hostVal)){
+        toast("Host格式非法！仅允许：localhost / 0.0.0.0 / 127.0.0.1 / 10.x.x.x / 172.16~31.x.x / 192.168.x.x", "err");
+        return;
+    }
+    // 3、端口校验 1~65535
+    if(isNaN(portVal) || portVal < 1 || portVal > 65535){
+        toast("端口必须是1~65535之间数字", "err");
+        return;
+    }
+    // 全部校验通过再写入全局配置并保存
+    fullConfig.onebot.listen_host = hostVal;
+    fullConfig.onebot.listen_port = portVal;
+    fullConfig.onebot.token = tokenVal;
     await saveWholeConfig();
 }
 // 全局写入完整配置到文件
@@ -426,6 +453,57 @@ async function delGroup(gid){
     if(!confirm(`删除群${gid}配置？`)) return;
     delete fullConfig.group_rules[gid];
     await saveWholeConfig();
+}
+// 测试LLM接口连通性
+async function testLLMConnect(){
+    const key = document.getElementById("llmKey").value.trim();
+    const url = document.getElementById("llmUrl").value.trim();
+    const model = document.getElementById("llmModel").value.trim();
+    const temp = parseFloat(document.getElementById("llmTemp").value);
+    const maxTok = parseInt(document.getElementById("llmMax").value);
+    if(!key || !url || !model){
+        toast("API Key、接口地址、模型名称不能为空！", "err");
+        return;
+    }
+    const testData = {
+        api_key: key,
+        base_url: url,
+        model: model,
+        temperature: temp,
+        max_tokens: maxTok
+    };
+    try{
+        const res = await fetch(`${base}/llm/test_connect`, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify(testData)
+        });
+        const ret = await res.json();
+        if(ret.code === 0){
+            toast("✅ 接口连通测试成功，模型正常可用！", "suc");
+        }else{
+            toast(`❌ 测试失败：${ret.msg}`, "err");
+        }
+    }catch(err){
+        toast("❌ 网络请求异常，无法连接后端", "err");
+    }
+}
+
+// 校验IP/本地域名格式函数
+function checkListenHostValid(hostStr){
+    // 允许合法值：0.0.0.0 / 127.0.0.1 / 192.168.x.x / 10.x.x.x / 172.16~31.x.x / localhost
+    const ipReg = /^(localhost|0\.0\.0\.0|127(\.\d{1,3}){3}|10(\.\d{1,3}){3}|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2}|192\.168(\.\d{1,3}){2})$/;
+    const parts = hostStr.split(".");
+    // 四段数字IP分段校验，每段0~255
+    if (parts.length === 4) {
+        for(let p of parts){
+            const num = parseInt(p,10);
+            if(isNaN(num) || num <0 || num >255){
+                return false;
+            }
+        }
+    }
+    return ipReg.test(hostStr);
 }
 
 window.onload = refreshAllData;
