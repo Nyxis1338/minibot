@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniBot 机器人管理面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            padding: 20px 40px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 30px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #4299e1;
+        }
+        .card-box {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 22px 26px;
+            margin-bottom: 24px;
+        }
+        .card-box h3 {
+            color: #2b6cb0;
+            margin-bottom: 16px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-box h4 {
+            color: #4a5568;
+            margin: 14px 0 8px;
+            font-size: 15px;
+        }
+        .status-text {
+            font-size: 16px;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .status-run {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .status-stop {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 6px 0;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+        textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+        button {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 6px 6px 6px 0;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.85;
+        }
+        .btn-primary {
+            background-color: #4299e1;
+            color: white;
+        }
+        .btn-success {
+            background-color: #48bb78;
+            color: white;
+        }
+        .btn-danger {
+            background-color: #f56565;
+            color: white;
+        }
+        .btn-default {
+            background-color: #a0aec0;
+            color: white;
+        }
+        .group-item {
+            padding: 10px 14px;
+            background: #f7fafc;
+            border-radius: 6px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap:10px;
+        }
+        hr {
+            margin: 18px 0;
+            border: none;
+            border-top: 1px solid #e2e8f0;
+        }
+        /* 弹窗遮罩 */
+        .modal-mask {
+            position: fixed;
+            top:0;left:0;right:0;bottom:0;
+            background: rgba(0,0,0,0.5);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            z-index:999;
+        }
+        .modal-box {
+            width: 600px;
+            max-width:90vw;
+            background:#fff;
+            border-radius:10px;
+            padding:24px;
+        }
+        .modal-title {
+            font-size:18px;
+            font-weight:bold;
+            margin-bottom:16px;
+            color:#2b6cb0;
+        }
+        .modal-btn-wrap {
+            margin-top:16px;
+            text-align:right;
+        }
+        /* Toast轻提示 */
+        .toast {
+            position: fixed;
+            top:20px;
+            right:20px;
+            padding:12px 20px;
+            border-radius:6px;
+            color:#fff;
+            z-index:1000;
+            display:none;
+        }
+        .toast-success { background:#48bb78; }
+        .toast-error { background:#f56565; }
+        .persona-item {
+            padding:8px 12px;
+            background:#f0f4f9;
+            border-radius:6px;
+            margin:6px 0;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+    </style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<h1>MiniBot QQ机器人管理面板</h1>
+
+<!-- 机器人控制 -->
+<div class="card-box">
+    <h3>🤖 机器人运行控制</h3>
+    <p>运行状态：<span id="status" class="status-text">加载中</span></p>
+    <button class="btn-success" onclick="startBot()">启动机器人</button>
+    <button class="btn-danger" onclick="stopBot()">暂停机器人</button>
+    <hr>
+    <button class="btn-primary" onclick="exportConfig()">导出全部配置</button>
+</div>
+
+<!-- 全局配置 -->
+<div class="card-box">
+    <h3>⚙️ 全局基础配置</h3>
+    <h4>OneBot WS 监听设置</h4>
+    <input id="ws_port" placeholder="监听端口，默认6199" value="6199">
+    <input id="ws_token" placeholder="Access Token 密钥" value="bot123456">
+
+    <h4>DeepSeek 大模型配置</h4>
+    <input id="ds_key" placeholder="sk-xxxx DeepSeek API密钥">
+    <input id="ds_model" placeholder="模型名称" value="deepseek-v4-flash">
+
+    <h4>全局机器人行为参数</h4>
+    <select id="global_persona_select">
+        <option value="">加载中...</option>
+    </select>
+    <input id="global_prob" placeholder="随机插话概率 0~1，例0.12" value="0.12">
+    <input id="global_cd" placeholder="发言冷却秒数，例120" value="120">
+    <textarea id="global_prompt" placeholder="自定义覆盖人设，留空使用上方选中预设人设"></textarea>
+    <button class="btn-primary" onclick="saveGlobal()">保存全局配置</button>
+</div>
+
+<!-- 人设管理 -->
+<div class="card-box">
+    <h3>🎭 机器人预设人设库</h3>
+    <input id="persona_name_input" placeholder="人设名称（如：温柔姐姐、高冷学长）">
+    <textarea id="persona_prompt_input" placeholder="输入该人设完整Prompt提示词"></textarea>
+    <button class="btn-success" onclick="savePersona()">新增/保存人设</button>
+    <hr>
+    <h4>已保存人设列表</h4>
+    <div id="persona_list"></div>
+</div>
+
+<!-- 分群配置（弹窗模式） -->
+<div class="card-box">
+    <h3>👥 分群独立配置</h3>
+    <button class="btn-success" onclick="openGroupModal()">添加新群配置</button>
+    <hr>
+    <h4>已配置群列表</h4>
+    <div id="group_list"></div>
+</div>
+
+<!-- 分群弹窗 -->
+<div class="modal-mask" id="groupModalMask">
+    <div class="modal-box">
+        <div class="modal-title" id="modalTitle">新增群配置</div>
+        <input type="hidden" id="edit_gid_hidden">
+        <input id="modal_gid" placeholder="群号（纯数字）">
+        <select id="modal_persona_select">
+            <option value="">加载人设...</option>
+        </select>
+        <input id="modal_prob" placeholder="随机插话概率 0~1">
+        <input id="modal_cd" placeholder="发言冷却秒数">
+        <textarea id="modal_prompt" placeholder="自定义该群专属prompt，留空使用选中人设"></textarea>
+        <div class="modal-btn-wrap">
+            <button class="btn-default" onclick="closeGroupModal()">取消</button>
+            <button class="btn-success" onclick="submitGroupForm()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const base = "/api";
+let allPersona = {};
+
+// Toast提示封装
+function showToast(msg, type="success"){
+    const toast = document.getElementById("toast");
+    toast.className = "toast toast-" + type;
+    toast.innerText = msg;
+    toast.style.display = "block";
+    setTimeout(()=>toast.style.display="none",2500);
+}
+
+// 刷新机器人状态
+async function refreshStatus(){
+    let res = await fetch(base+"/bot/status");
+    let d = await res.json();
+    let dom = document.getElementById("status");
+    dom.innerText = d.running ? "运行中" : "已暂停";
+    dom.className = d.running ? "status-text status-run" : "status-text status-stop";
+}
+
+async function startBot(){
+    await fetch(base+"/bot/start",{method:"POST"});
+    showToast("机器人正在启动");
+    setTimeout(refreshStatus, 800);
+}
+async function stopBot(){
+    await fetch(base+"/bot/stop",{method:"POST"});
+    showToast("机器人已暂停");
+    refreshStatus();
+}
+
+// 导出配置
+async function exportConfig(){
+    let res = await fetch(base+"/config/export");
+    let ret = await res.json();
+    const blob = new Blob([JSON.stringify(ret.data,null,2)],{type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "minibot_config_backup.json";
+    a.click();
+    showToast("配置导出完成");
+}
+
+// 全局配置保存
+async function saveGlobal(){
+    const selectPer = document.getElementById("global_persona_select").value;
+    let data = {
+        onebot:{
+            listen_port:Number(document.getElementById("ws_port").value),
+            token:document.getElementById("ws_token").value
+        },
+        llm:{
+            api_key:document.getElementById("ds_key").value,
+            model:document.getElementById("ds_model").value
+        },
+        global_robot:{
+            select_persona: selectPer,
+            random_prob:Number(document.getElementById("global_prob").value),
+            cooldown_sec:Number(document.getElementById("global_cd").value),
+            system_prompt:document.getElementById("global_prompt").value
+        }
+    }
+    let resp = await fetch(base+"/global/save",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(data)
+    });
+    let ret = await resp.json();
+    if(ret.code===0) showToast(ret.msg);
+    else showToast(ret.msg,"error");
+}
+
+// 人设相关
+async function loadAllPersona(){
+    let res = await fetch(base+"/persona/all");
+    let d = await res.json();
+    allPersona = d.data;
+    // 填充下拉框
+    const globalSel = document.getElementById("global_persona_select");
+    const modalSel = document.getElementById("modal_persona_select");
+    globalSel.innerHTML = "";
+    modalSel.innerHTML = "";
+    for(let name in allPersona){
+        globalSel.innerHTML += `<option value="${name}">${name}</option>`;
+        modalSel.innerHTML += `<option value="${name}">${name}</option>`;
+    }
+    // 渲染人设列表
+    let html = "";
+    for(let name in allPersona){
+        html += `
+        <div class="persona-item">
+            <span>${name}</span>
+            <button class="btn-danger" onclick="delPersona('${name}')">删除</button>
+        </div>`;
+    }
+    document.getElementById("persona_list").innerHTML = html;
+}
+async function savePersona(){
+    const name = document.getElementById("persona_name_input").value.trim();
+    const prompt = document.getElementById("persona_prompt_input").value.trim();
+    if(!name) return showToast("请输入人设名称","error");
+    let resp = await fetch(base+"/persona/save",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({name,prompt})
+    });
+    let ret = await resp.json();
+    if(ret.code===0){
+        showToast("人设保存成功");
+        document.getElementById("persona_name_input").value = "";
+        document.getElementById("persona_prompt_input").value = "";
+        loadAllPersona();
+    }else showToast(ret.msg,"error");
+}
+async function delPersona(name){
+    if(!confirm(`确定删除人设「${name}」？`)) return;
+    await fetch(base+`/persona/del?name=${encodeURIComponent(name)}`,{method:"DELETE"});
+    showToast("人设已删除");
+    loadAllPersona();
+}
+
+// 分群弹窗逻辑
+function openGroupModal(gid=""){
+    document.getElementById("groupModalMask").style.display = "flex";
+    if(gid){
+        // 编辑模式
+        document.getElementById("modalTitle").innerText = "编辑群配置";
+        document.getElementById("edit_gid_hidden").value = gid;
+        const g = allGroup[gid];
+        document.getElementById("modal_gid").value = gid;
+        document.getElementById("modal_gid").disabled = true;
+        document.getElementById("modal_persona_select").value = g.select_persona;
+        document.getElementById("modal_prob").value = g.random_prob;
+        document.getElementById("modal_cd").value = g.cooldown_sec;
+        document.getElementById("modal_prompt").value = g.system_prompt;
+    }else{
+        // 新增模式
+        document.getElementById("modalTitle").innerText = "新增群配置";
+        document.getElementById("edit_gid_hidden").value = "";
+        document.getElementById("modal_gid").value = "";
+        document.getElementById("modal_gid").disabled = false;
+        document.getElementById("modal_prob").value = "";
+        document.getElementById("modal_cd").value = "";
+        document.getElementById("modal_prompt").value = "";
+    }
+}
+function closeGroupModal(){
+    document.getElementById("groupModalMask").style.display = "none";
+}
+let allGroup = {};
+async function loadGroups(){
+    let res = await fetch(base+"/group/all");
+    let d = await res.json();
+    allGroup = d.data;
+    let html = "";
+    for(let gid in allGroup){
+        let g = allGroup[gid];
+        html += `
+        <div class="group-item">
+            <span>群${gid} | 人设：${g.select_persona} | 概率${g.random_prob} | 冷却${g.cooldown_sec}s</span>
+            <div>
+                <button class="btn-primary" onclick="openGroupModal('${gid}')">编辑</button>
+                <button class="btn-danger" onclick="delGroup('${gid}')">删除</button>
+            </div>
+        </div>`;
+    }
+    document.getElementById("group_list").innerHTML = html || "<p style='color:#888'>可点击上方按钮添加新群配置，首次启动自带示范群 12345678</p>";
+}
+async function submitGroupForm(){
+    const editId = document.getElementById("edit_gid_hidden").value;
+    const gid = document.getElementById("modal_gid").value.trim();
+    const selPer = document.getElementById("modal_persona_select").value;
+    const prob = Number(document.getElementById("modal_prob").value);
+    const cd = Number(document.getElementById("modal_cd").value);
+    const prompt = document.getElementById("modal_prompt").value;
+    if(!gid || isNaN(prob) || isNaN(cd)) return showToast("请填写完整合法参数","error");
+    if(prob<0||prob>1) return showToast("概率必须0~1之间","error");
+    if(cd<0) return showToast("冷却不能为负数","error");
+    let body = {select_persona:selPer, random_prob:prob, cooldown_sec:cd, system_prompt:prompt};
+    let resp = await fetch(base+`/group/save?group_id=${gid}`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(body)
+    });
+    let ret = await resp.json();
+    if(ret.code===0){
+        showToast("群配置保存成功");
+        closeGroupModal();
+        loadGroups();
+    }else showToast(ret.msg,"error");
+}
+async function delGroup(gid){
+    if(!confirm(`确定删除群${gid}配置？`)) return;
+    await fetch(base+`/group/del?group_id=${gid}`,{method:"DELETE"});
+    showToast("群配置已删除");
+    loadGroups();
+}
+
+window.onload = async ()=>{
+    refreshStatus();
+    await loadAllPersona();
+    loadGroups();
+}
+</script>
+</body>
+</html>
