@@ -1,5 +1,5 @@
 # MiniBot
-
+下方是最初的架构，实际有增减
 ```text
 MiniBot/
 ├── main.py                     # 程序入口，启动 FastAPI + 机器人异步循环
