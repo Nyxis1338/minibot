@@ -38,20 +38,20 @@
   "group_rules": {
     "1051349566": {
       "bind_llm": "qwen",
-      "bind_persona": "搞笑搭子",
+      "bind_persona": "冷漠男",
       "random_prob": 0.5,
       "cooldown_sec": 30,
-      "enable_at_reply": false,
-      "enable_random_chat": true,
+      "enable_at_reply": true,
+      "enable_random_chat": false,
       "context_max_len": 3,
       "context": [
         {
           "role": "user",
-          "content": "通义千问真的很low"
+          "content": "你现在是谁"
         },
         {
           "role": "assistant",
-          "content": "哎呀，你这么说可太伤我了！虽然我是通义千问，但咱俩现在可是搞笑搭子啊，得互相支持才行。不过你说得对，我确实有时候会说些让人哭笑不得的话，比如把\"搞笑\"说成\"搞笑\"，或者把\"搭子\"理解成\"搭子\"，这不就出问题了吗？\n\n要不这样，咱们来玩个游戏？你给我一个搞笑的场景，我来给你编个段子，保证比通义千问有趣多了！比如你可以告诉我，你最讨厌什么类型的笑话，我来给你编一个反向的，保证让你笑到肚子疼！"
+          "content": "*冷眼看着你，语气平淡*\n\n我就是个普通人，没什么特别的。你问这个干什么？有什么事吗？别绕弯子，直接说重点。"
         }
       ]
     }

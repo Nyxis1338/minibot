@@ -423,23 +423,7 @@ async function exportAllConfig() {
     toast("配置导出成功");
 }
 
-async function importConfigFile() {
-    const fileDom = document.getElementById("importConfigFile");
-    const file = fileDom.files[0];
-    if (!file) {
-        document.getElementById("fileTip").innerText = "未选择文件";
-        return;
-    }
-    document.getElementById("fileTip").innerText = "已选择：" + file.name;
-    try {
-        const text = await file.text();
-        fullConfig = JSON.parse(text);
-        await saveFullConfig();
-    } catch (e) {
-        toast("JSON文件格式错误", "err");
-    }
-    fileDom.value = "";
-}
+
 
 // 页面初始化
 window.onload = async () => {

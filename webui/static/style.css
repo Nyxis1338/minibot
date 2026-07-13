@@ -60,14 +60,3 @@ button{padding:10px 16px;border:none;border-radius:8px;cursor:pointer;font-size:
 .status-online{color:#00b42a;font-weight:bold;font-size:15px}
 .status-offline{color:#222;font-weight:bold;font-size:15px}
 
-/* 美化文件选择按钮（需求2） */
-.file-wrapper{position:relative;display:inline-block;margin:8px 0}
-.file-wrapper input[type="file"]{
-    position:absolute;opacity:0;width:100%;height:100%;left:0;top:0;cursor:pointer;
-}
-.file-label{
-    display:block;padding:9px 16px;background:#86909c;color:#fff;border-radius:8px;cursor:pointer;
-    transition:0.2s;user-select:none;
-}
-.file-label:hover{background:#707b88}
-.file-name-tip{margin-top:6px;font-size:13px;color:#666}
