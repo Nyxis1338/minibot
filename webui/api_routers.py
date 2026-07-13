@@ -4,6 +4,7 @@ from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel
 from config.config_mgr import cfg_mgr
 from core.bot_state import start_bot, stop_bot, get_bot_status
+from core.utils import get_full_config
 
 router = APIRouter(prefix="/api")
 

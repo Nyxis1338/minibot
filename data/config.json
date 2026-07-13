@@ -39,9 +39,9 @@
     "1051349566": {
       "bind_llm": "qwen",
       "bind_persona": "搞笑搭子",
-      "random_prob": 0.7,
+      "random_prob": 0.5,
       "cooldown_sec": 30,
-      "enable_at_reply": true,
+      "enable_at_reply": false,
       "enable_random_chat": true,
       "context_max_len": 3
     }

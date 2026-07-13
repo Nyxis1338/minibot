@@ -4,17 +4,28 @@
     "listen_port": 6199,
     "token": ""
   },
-  "llm_providers": {},
+  "llm_providers": {
+    "qwen": {
+      "provider_type": "qwen",
+      "api_key": "sk-xxx",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "model": "qwen-turbo",
+      "temperature": 0.7,
+      "max_tokens": 1024
+    }
+  },
   "personas": {},
   "group_rules": {
-    "示例群号": {
-      "bind_llm": "",
-      "bind_persona": "",
+    "123456789": {
+      "bind_llm": "qwen",
+      "bind_persona": "助手",
       "random_prob": 0.12,
       "cooldown_sec": 120,
       "enable_at_reply": true,
       "enable_random_chat": true,
-      "context_max_len": 8
+      "context_max_len": 8,
+      "context": []
     }
+
   }
 }

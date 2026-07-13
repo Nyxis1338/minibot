@@ -19,7 +19,7 @@
 
     <!-- OneBot WS配置 -->
     <div class="card">
-        <h3>⚙️ OneBot WS 连接配置</h3>
+        <h3>⚙️ One WS 反向连接配置</h3>
         <label>listen_host 监听地址</label>
         <input id="obHost" placeholder="0.0.0.0 / 127.0.0.1">
         <label>listen_port 监听端口</label>
@@ -29,31 +29,38 @@
         <button class="btn-blue" onclick="saveOneBotConfig()">保存OneBot配置</button>
     </div>
 
-    <!-- 配置备份 -->
+    <!-- 配置导入导出 -->
     <div class="card">
         <h3>💾 配置导入导出</h3>
-        <button class="btn-blue" onclick="exportAllConfig()">导出全部配置</button>
-        <label>导入JSON配置文件</label>
-        <input type="file" id="importConfigFile" accept=".json" onchange="importConfigFile()">
+        <button class="btn-blue" onclick="exportAllConfig()">导出全部配置JSON</button>
+        <!-- 美化文件选择框 -->
+        <div class="file-wrapper">
+            <label class="file-label">选择JSON导入文件</label>
+            <input type="file" id="importConfigFile" accept=".json" onchange="importConfigFile()">
+        </div>
+        <div class="file-name-tip" id="fileTip">未选择文件</div>
+
     </div>
 
     <!-- 大模型厂商 -->
     <div class="card">
-        <h3>💜 大模型厂商配置 (DeepSeek/智谱/通义千问)</h3>
+        <h3>💜 大模型厂商配置</h3>
         <button class="btn-green" onclick="openLlmModal()">新增模型厂商</button>
         <div id="llmListWrap"></div>
+        <!-- 新增：导出LLM厂商代码按钮 -->
+        <button class="btn-gray" onclick="exportLlmProviderCode()">导出LLM厂商Provider文本</button>
     </div>
 
     <!-- 人设库 -->
     <div class="card">
-        <h3>🐦 机器人预设人设库</h3>
+        <h3>🐦 机器人预设人设</h3>
         <button class="btn-green" onclick="openPersonaModal()">新增人设</button>
         <div id="personaListWrap"></div>
     </div>
 
-    <!-- QQ群规则 -->
+    <!-- QQ群规则（需求3：列表增加随机/冷却展示） -->
     <div class="card">
-        <h3>🏯 QQ群独立规则配置（可绑定独立模型+人设）</h3>
+        <h3>🏠 QQ群独立对话规则</h3>
         <button class="btn-green" onclick="openGroupModal()">新增群配置</button>
         <div id="groupListWrap"></div>
     </div>
@@ -64,10 +71,18 @@
     <div class="modal-panel">
         <div class="modal-head">
             <h3 id="llmModalTitle">新增模型厂商</h3>
-            <span class="modal-close" onclick="closeModal('llmModal')">×</span>
+            <button class="modal-close" onclick="closeModal('llmModal')">×</button>
         </div>
         <label>厂商标识（英文，编辑不可改）</label>
         <input id="llmName">
+        <label>厂商类型 provider_type</label>
+        <select id="llmProviderType">
+            <option value="deepseek">deepseek</option>
+            <option value="zhipu">zhipu</option>
+            <option value="qwen">qwen</option>
+            <option value="other">other(自定义)</option>
+        </select>
+
         <label>API Key</label>
         <input id="llmKey">
         <label>Base URL</label>
@@ -91,7 +106,7 @@
     <div class="modal-panel">
         <div class="modal-head">
             <h3 id="personaModalTitle">新增人设</h3>
-            <span class="modal-close" onclick="closeModal('personaModal')">×</span>
+            <button class="modal-close" onclick="closeModal('personaModal')">×</button>
         </div>
         <label>人设名称</label>
         <input id="personaName">
@@ -104,12 +119,12 @@
     </div>
 </div>
 
-<!-- 群配置弹窗 -->
+<!-- 群配置弹窗（复选框美化） -->
 <div class="modal-mask" id="groupModal">
     <div class="modal-panel">
         <div class="modal-head">
             <h3 id="groupModalTitle">新增群配置</h3>
-            <span class="modal-close" onclick="closeModal('groupModal')">×</span>
+            <button class="modal-close" onclick="closeModal('groupModal')">×</button>
         </div>
         <label>目标群号</label>
         <input id="editGroupId" type="number">
