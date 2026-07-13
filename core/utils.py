@@ -9,15 +9,20 @@ def get_full_config() -> Dict[str, Any]:
     """全局读取完整配置"""
     return cfg_mgr.load_file()
 
-# ===================== LLM 公共封装（替代原 bot_state.get_llm_by_name） =====================
+# ===================== LLM 公共封装（get_llm_by_name） =====================
 def get_llm_by_name(name: str):
+    # 新增：空模型名直接打印明细日志
+    if not name or name.strip() == "":
+        print(f"[Config Warn] 当前群绑定模型名称为空，跳过LLM初始化")
+        return None
     cfg = get_full_config()
     llm_list = cfg["llm_providers"]
     if name not in llm_list:
+        print(f"[Config Err] 模型【{name}】不在厂商列表，未初始化")
         return None
     llm_info = llm_list[name]
 
-    # 兼容旧配置缺失 provider_type
+    # 兼容旧配置缺失provider_type
     if "provider_type" not in llm_info:
         p_type = auto_infer_provider(name)
         if not p_type:

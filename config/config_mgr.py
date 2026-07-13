@@ -18,39 +18,33 @@ EMPTY_SKELETON = {
 
 class ConfigManager:
     def __init__(self):
-        os.makedirs("data", exist_ok=True)
+        self.path = "data/config.json"
+        self._cache = None  # 内存缓存
+        self._cache_dirty = False
 
-    def load_file(self) -> Dict[str, Any]:
-        # 文件不存在 → 生成最小空骨架
-        if not os.path.exists(CONFIG_PATH):
-            self.save_file(EMPTY_SKELETON)
-            return EMPTY_SKELETON.copy()
-        # 读取已有配置
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            raw_data = json.load(f)
-        # 递归补全顶层key，兼容残缺旧文件
-        filled_data = self._fill_skeleton(raw_data)
-        self.save_file(filled_data)
-        return filled_data
+    def load_file(self):
+        # 缓存有效直接返回，减少磁盘IO
+        if self._cache is not None and not self._cache_dirty:
+            return self._cache
+        if not os.path.exists(self.path):
+            import json
+            with open("data/config.sample.json","r",encoding="utf-8") as f:
+                self._cache = json.load(f)
+                self._cache_dirty = False
+                return self._cache
+        with open(self.path,"r",encoding="utf-8") as f:
+            self._cache = json.load(f)
+            self._cache_dirty = False
+            return self._cache
 
-    def save_file(self, data: Dict[str, Any]):
-        # 持久化写入json，WebUI所有修改落地此处
-        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    def save_file(self, data):
+        self._cache = data
+        self._cache_dirty = True
+        import json
+        with open(self.path,"w",encoding="utf-8") as f:
+            json.dump(data,f,ensure_ascii=False,indent=2)
+        self._cache_dirty = False
 
-    def _fill_skeleton(self, user_cfg: Dict[str, Any]) -> Dict[str, Any]:
-        # 修复：先拷贝骨架，再用用户数据覆盖（子字典先骨架再用户，保留默认字段）
-        full = EMPTY_SKELETON.copy()
-        for top_key, skeleton_sub in EMPTY_SKELETON.items():
-            if isinstance(skeleton_sub, dict):
-                # 先填充骨架默认值，再叠加用户配置，缺失key保留默认
-                sub_target = full[top_key]
-                sub_target.update(user_cfg.get(top_key, {}))
-            else:
-                # 非字典顶层键直接覆盖
-                if top_key in user_cfg:
-                    full[top_key] = user_cfg[top_key]
-        return full
 
 # 全局单例
 cfg_mgr = ConfigManager()

@@ -45,7 +45,17 @@ async def handle_event(event: dict):
     cooldown = g_cfg["cooldown_sec"]
     prob = g_cfg["random_prob"]
     sys_prompt = g_cfg["bind_persona"]
+    
     target_llm_name = g_cfg["bind_llm"]
+    # 新增提前校验空模型
+    if not target_llm_name or target_llm_name.strip() == "":
+        print(f"[Skip] 群{gid} 绑定模型名称为空，跳过AI调用")
+        return
+    llm_client = get_llm_by_name(target_llm_name)
+    if llm_client is None:
+        print(f"[LLM] 群{gid} 绑定模型 {target_llm_name} 未初始化，跳过")
+        return
+
     enable_at = g_cfg["enable_at_reply"]
     enable_random = g_cfg["enable_random_chat"]
     ctx_max = g_cfg["context_max_len"]
