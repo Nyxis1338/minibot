@@ -1,5 +1,5 @@
 import aiohttp
-from core.llm.base import BaseLLMProvider
+from llm.base import BaseLLMProvider
 
 class QwenProvider(BaseLLMProvider):
     async def chat(self, system_prompt: str, context):

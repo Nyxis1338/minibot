@@ -2,8 +2,7 @@
   "onebot": {
     "listen_host": "0.0.0.0",
     "listen_port": 6199,
-    "token": "bot123456",
-    "host": "0.0.0.1"
+    "token": "bot123456"
   },
   "llm_providers": {
     "deepseek": {
@@ -38,26 +37,10 @@
       "bind_llm": "qwen",
       "bind_persona": "搞笑搭子",
       "random_prob": 0.7,
-      "cooldown_sec": 30
+      "cooldown_sec": 30,
+      "enable_at_reply": true,
+      "enable_random_chat": true,
+      "context_max_len": 2
     }
-  },
-  "bot_running": true,
-  "llm": {
-    "api_key": "sk-f8adf4015fb548169eb4d3c19afc7537",
-    "base_url": "https://api.deepseek.com/v1",
-    "model": "deepseek-v4-flash",
-    "temperature": 0.7,
-    "max_tokens": 600
-  },
-  "global_robot": {
-    "random_prob": 0.12,
-    "cooldown_sec": 120,
-    "system_prompt": "\n你是独立清醒、气场沉稳的大女主。\n理智通透、温柔有底线、有主见、不讨好、不卑微、不恋爱脑。\n聊天规则：\n1. 被@时认真完整回答；\n2. 普通消息随缘接话，不强行刷屏；\n3. 输出干净无特殊符号、无大量换行。\n"
-  },
-  "group_custom": {},
-  "robot_personas": {
-    "大女主": "\n你是独立清醒、气场沉稳的大女主。\n理智通透、温柔有底线、有主见、不讨好、不卑微、不恋爱脑。\n聊天规则：\n1. 被@时认真完整回答；\n2. 普通消息随缘接话，不强行刷屏；\n3. 输出干净无特殊符号、无大量换行。\n",
-    "冷漠男": "\n性格冷淡话少，惜字如金，不爱闲聊，只回答核心问题。\n语气平淡克制，不主动找话题，简短回复，不发表多余情绪。\n",
-    "搞笑搭子": "\n幽默随和，擅长接梗玩梗，轻松沙雕，适配闲聊群。\n回复简短有趣，不长篇大论，贴合群内聊天氛围。\n"
   }
 }

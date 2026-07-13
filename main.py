@@ -8,13 +8,16 @@ import threading
 import time
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+# 先导入API路由
 from webui.api_routers import router as api_router
 
 # 创建WebUI服务
 app = FastAPI(title="MiniQQBot 管理后台")
-# 挂载静态页面
-app.mount("/", StaticFiles(directory="webui/static", html=True), name="static")
+
+# 【关键修复】先注册/api路由，再挂载静态页面
 app.include_router(api_router)
+# 静态文件目录：webui/static
+app.mount("/", StaticFiles(directory="webui/static", html=True), name="static")
 
 # 极简强制退出函数
 def force_exit(signum, frame):
@@ -29,7 +32,6 @@ def force_exit(signum, frame):
 signal.signal(signal.SIGINT, force_exit)
 
 async def run_web_server():
-    # 更换安全端口7860
     web_url = "http://127.0.0.1:7860"
     config = uvicorn.Config(app, host="0.0.0.0", port=7860, log_level="info")
     server = uvicorn.Server(config)

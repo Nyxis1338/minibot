@@ -2,132 +2,140 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>MiniBot AI机器人管理面板</title>
+<title>MiniBot 配置面板</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
-<h2 style="margin-bottom:20px">MiniBot Web管理后台</h2>
+    <h2>MiniBot AI机器人管理面板</h2>
 
-<!-- 机器人启停控制 -->
-<div class="card">
-<h3>🤖 机器人总控制</h3>
-<button class="btn-green" onclick="startBot()">启动机器人WS监听</button>
-<button class="btn-red" onclick="stopBot()">停止机器人WS监听</button>
-<div id="botStatus" style="margin-top:10px;color:#666">加载状态中...</div>
-</div>
+    <!-- 机器人启停 -->
+    <div class="card">
+        <h3>🤖 机器人总控制</h3>
+        <button class="btn-green" onclick="startBot()">启动机器人WS</button>
+        <button class="btn-red" onclick="stopBot()">停止机器人WS</button>
+        <div id="botStatus" style="margin-top:10px;"></div>
+    </div>
 
-<!-- 配置备份管理【新增，不改动原有任何模块】 -->
-<div class="card">
-    <h3>💾 配置备份管理</h3>
-    <button class="btn-blue" onclick="exportAllConfig()">导出全部配置备份</button>
-    <label>导入配置JSON文件</label>
-    <input type="file" id="importConfigFile" accept=".json" onchange="importConfigFile()">
-</div>
+    <!-- OneBot WS配置 -->
+    <div class="card">
+        <h3>⚙️ OneBot WS 连接配置</h3>
+        <label>listen_host 监听地址</label>
+        <input id="obHost" placeholder="0.0.0.0 / 127.0.0.1">
+        <label>listen_port 监听端口</label>
+        <input id="obPort" type="number">
+        <label>token 鉴权密钥</label>
+        <input id="obToken">
+        <button class="btn-blue" onclick="saveOneBotConfig()">保存OneBot配置</button>
+    </div>
 
-<!-- OneBot WS配置 -->
-<div class="card">
-<h3>⚙️ OneBot WS服务配置</h3>
-<label>监听 Host listen_host</label>
-<input id="obHost" placeholder="0.0.0.0 局域网可访问 / 127.0.0.1 仅本机">
-<label>监听端口 listen_port</label>
-<input id="obPort" placeholder="默认6199" type="number">
-<label>访问鉴权 Token</label>
-<input id="obToken" placeholder="与NapCat反向WS Token保持一致">
-<button class="btn-blue" onclick="saveOneBot()">保存OneBot配置</button>
-</div>
+    <!-- 配置备份 -->
+    <div class="card">
+        <h3>💾 配置导入导出</h3>
+        <button class="btn-blue" onclick="exportAllConfig()">导出全部配置</button>
+        <label>导入JSON配置文件</label>
+        <input type="file" id="importConfigFile" accept=".json" onchange="importConfigFile()">
+    </div>
 
-<!-- 大模型厂商管理 -->
-<div class="card">
-<h3>🧠 大模型厂商管理</h3>
-<div class="row">
-<div class="col">
-<label>模型厂商 provider_type</label>
-<select id="llmProviderType">
-    <option value="deepseek">DeepSeek</option>
-    <option value="zhipu">智谱GLM</option>
-    <option value="qwen">通义千问</option>
-</select>
-<label>厂商标识（英文不可修改）</label>
-<input id="llmName" placeholder="deepseek / glm">
-<label>API Key</label>
-<input id="llmKey" placeholder="模型服务商密钥">
-<label>Base URL</label>
-<input id="llmUrl" placeholder="https://api.deepseek.com/v1">
-<label>model 模型名称</label>
-<input id="llmModel" placeholder="deepseek-chat">
-<label>temperature</label>
-<input id="llmTemp" value="0.7" step="0.1" type="number">
-<label>max_tokens</label>
-<input id="llmMaxTok" value="1024" type="number">
-<div style="margin:10px 0;">
-<button class="btn-blue" onclick="testLLMConnect()">🔍 测试接口连通性</button>
-</div>
-<button class="btn-green" onclick="saveLLM()">保存模型</button>
-<button class="btn-red" onclick="delLLM()">删除当前厂商</button>
-</div>
-<div class="col">
-<h4>已添加厂商列表</h4>
-<div id="llmListBox"></div>
-</div>
-</div>
+    <!-- 大模型厂商 -->
+    <div class="card">
+        <h3>💜 大模型厂商配置 (DeepSeek/智谱/通义千问)</h3>
+        <button class="btn-green" onclick="openLlmModal()">新增模型厂商</button>
+        <div id="llmListWrap"></div>
+    </div>
+
+    <!-- 人设库 -->
+    <div class="card">
+        <h3>🐦 机器人预设人设库</h3>
+        <button class="btn-green" onclick="openPersonaModal()">新增人设</button>
+        <div id="personaListWrap"></div>
+    </div>
+
+    <!-- QQ群规则 -->
+    <div class="card">
+        <h3>🏯 QQ群独立规则配置（可绑定独立模型+人设）</h3>
+        <button class="btn-green" onclick="openGroupModal()">新增群配置</button>
+        <div id="groupListWrap"></div>
+    </div>
 </div>
 
-<!-- AI人设Prompt管理 -->
-<div class="card">
-<h3>📝 AI人设Prompt管理</h3>
-<div class="row">
-<div class="col">
-<label>人设名称</label>
-<input id="personaName">
-<label>系统提示词</label>
-<textarea id="personaPrompt"></textarea>
-<button class="btn-green" onclick="savePersona()">保存人设</button>
-<button class="btn-red" onclick="delPersona()">删除人设</button>
-</div>
-<div class="col">
-<h4>所有人设列表</h4>
-<div id="personaListBox"></div>
-</div>
-</div>
-</div>
-
-<!-- QQ群独立规则配置 -->
-<div class="card">
-<h3>👥 QQ群独立规则配置</h3>
-<div class="row">
-<div class="col">
-<label>目标群号</label>
-<input id="editGroupId" placeholder="仅数字">
-<label>绑定大模型</label>
-<select id="groupBindLLM"></select>
-<label>绑定人设Prompt</label>
-<select id="groupBindPersona"></select>
-<label>随机插话概率(0~1)</label>
-<input id="groupProb" type="number" step="0.01" min="0" max="1" value="0.12">
-<label>发言冷却时间(秒)</label>
-<input id="groupCd" type="number" min="0" value="120">
-
-<div style="margin:8px 0;">
-<input type="checkbox" id="switchAtReply">
-<label for="switchAtReply">开启@机器人自动回复</label>
-</div>
-<div style="margin:8px 0;">
-<input type="checkbox" id="switchRandomChat">
-<label for="switchRandomChat">开启群内随机插话</label>
+<!-- LLM弹窗 -->
+<div class="modal-mask" id="llmModal">
+    <div class="modal-panel">
+        <div class="modal-head">
+            <h3 id="llmModalTitle">新增模型厂商</h3>
+            <span class="modal-close" onclick="closeModal('llmModal')">×</span>
+        </div>
+        <label>厂商标识（英文，编辑不可改）</label>
+        <input id="llmName">
+        <label>API Key</label>
+        <input id="llmKey">
+        <label>Base URL</label>
+        <input id="llmUrl">
+        <label>model 模型名称</label>
+        <input id="llmModel">
+        <label>temperature 温度</label>
+        <input id="llmTemp" step="0.1" type="number">
+        <label>max_tokens 最大输出长度</label>
+        <input id="llmMaxTok" type="number">
+        <button class="btn-blue" onclick="testLLMConnect()">测试接口连通</button>
+        <div style="margin-top:10px;">
+            <button class="btn-green" onclick="submitLlmForm()">保存</button>
+            <button class="btn-red" onclick="closeModal('llmModal')">取消</button>
+        </div>
+    </div>
 </div>
 
-<label>对话上下文记忆轮次</label>
-<input id="groupCtxLen" type="number" min="1" max="20" value="8" placeholder="建议4-10">
+<!-- 人设弹窗 -->
+<div class="modal-mask" id="personaModal">
+    <div class="modal-panel">
+        <div class="modal-head">
+            <h3 id="personaModalTitle">新增人设</h3>
+            <span class="modal-close" onclick="closeModal('personaModal')">×</span>
+        </div>
+        <label>人设名称</label>
+        <input id="personaName">
+        <label>系统提示词</label>
+        <textarea id="personaPrompt"></textarea>
+        <div style="margin-top:10px;">
+            <button class="btn-green" onclick="submitPersonaForm()">保存</button>
+            <button class="btn-red" onclick="closeModal('personaModal')">取消</button>
+        </div>
+    </div>
+</div>
 
-<button class="btn-blue" onclick="saveGroupRule()">保存群配置</button>
-<button class="btn-red" onclick="delGroupRule()">删除该群配置</button>
-</div>
-<div class="col">
-<h4>已配置群列表</h4>
-<div id="groupListBox"></div>
-</div>
-</div>
+<!-- 群配置弹窗 -->
+<div class="modal-mask" id="groupModal">
+    <div class="modal-panel">
+        <div class="modal-head">
+            <h3 id="groupModalTitle">新增群配置</h3>
+            <span class="modal-close" onclick="closeModal('groupModal')">×</span>
+        </div>
+        <label>目标群号</label>
+        <input id="editGroupId" type="number">
+        <label>绑定大模型</label>
+        <select id="groupBindLLM"></select>
+        <label>绑定人设</label>
+        <select id="groupBindPersona"></select>
+        <label>随机插话概率(0~1)</label>
+        <input id="groupProb" step="0.01" type="number">
+        <label>发言冷却秒数</label>
+        <input id="groupCd" type="number">
+        <div class="checkbox-row">
+            <input type="checkbox" id="switchAtReply">
+            <label for="switchAtReply">开启@自动回复</label>
+        </div>
+        <div class="checkbox-row">
+            <input type="checkbox" id="switchRandomChat">
+            <label for="switchRandomChat">开启随机插话</label>
+        </div>
+        <label>上下文记忆轮次</label>
+        <input id="groupCtxLen" type="number">
+        <div style="margin-top:10px;">
+            <button class="btn-green" onclick="submitGroupForm()">保存</button>
+            <button class="btn-red" onclick="closeModal('groupModal')">取消</button>
+        </div>
+    </div>
 </div>
 
 <!-- Toast弹窗容器 -->

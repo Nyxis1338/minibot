@@ -1,4 +1,5 @@
 import asyncio
+import json
 import websockets
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 from typing import Set
@@ -7,7 +8,7 @@ class OneBotWSAdapter:
     def __init__(self, host: str, port: int, token: str):
         self.host = host
         self.port = port
-        self.token = token
+        self.token = token.strip()
         self.clients: Set[websockets.WebSocketServerProtocol] = set()
         self.server = None
         self.running = False
@@ -17,28 +18,42 @@ class OneBotWSAdapter:
         self.event_handler = handler
 
     async def handle_conn(self, websocket):
-        # Token鉴权
-        path = websocket.path
+        # 兼容新版websockets 读取path和headers
+        path = websocket.request.path
+        headers = websocket.request.headers
         token_ok = False
+        # 方式1：兼容旧版 url ?token=xxx
         if "?" in path:
             query_str = path.split("?")[1]
-            params = dict(p.split("=") for p in query_str.split("&") if "=" in p)
-            token_ok = params.get("token", "") == self.token
+            params = {}
+            for p in query_str.split("&"):
+                if "=" in p:
+                    k, v = p.split("=", 1)
+                    params[k] = v.strip()
+            if params.get("token", "") == self.token:
+                token_ok = True
+        # 方式2：标准OneBot v11 Header鉴权 Bearer xxx（NapCat默认方式）
+        if not token_ok:
+            auth_header = headers.get("Authorization", "").strip()
+            expect_header = f"Bearer {self.token}"
+            if auth_header == expect_header:
+                token_ok = True
+        # 双方式都不匹配则断开
         if not token_ok:
             print(f"[WS] 收到非法连接，Token校验失败，断开")
             await websocket.close(code=1008, reason="token invalid")
             return
-
         print(f"[WS] NapCat 反向WS连接建立成功！")
         self.clients.add(websocket)
         try:
             async for raw in websocket:
                 try:
-                    data = eval(raw) if raw.startswith("{") else None
+                    # 替换危险eval，使用标准json解析
+                    data = json.loads(raw)
                     if data and self.event_handler:
                         asyncio.create_task(self.event_handler(data))
                 except Exception as e:
-                    print(f"[WS] 消息解析异常: {str(e)}")
+                    print(f"[WS] 消息解析异常: {str(e)} 原始数据:{raw}")
         except (ConnectionClosedOK, ConnectionClosedError):
             print(f"[WS] NapCat 连接断开，等待重连...")
         finally:

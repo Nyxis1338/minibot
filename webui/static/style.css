@@ -16,3 +16,26 @@ button{padding:9px 16px;border:none;border-radius:6px;cursor:pointer;margin:6px 
 .toast{padding:10px 16px;border-radius:6px;margin-bottom:8px;color:#fff}
 .toast.suc{background:#0ea863}
 .toast.err{background:#e04343}
+
+/* 截图样式：单行列表布局 */
+.item-row{display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border:1px solid #eee;border-radius:6px;margin:6px 0}
+.item-actions{display:flex;gap:8px}
+.item-actions button{margin:0}
+
+/* 全局模态弹窗遮罩 */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;place-items:center;z:99998}
+.modal-panel{width:min(560px,92vw);background:white;border-radius:10px;padding:20px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.modal-close{cursor:pointer;border:0;background:transparent;font-size:20px}
+
+/* 群配置弹窗复选框美化 */
+.checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:12px 0;
+}
+.checkbox-row input[type="checkbox"]{
+    width:auto;
+    transform:scale(1.15);
+}

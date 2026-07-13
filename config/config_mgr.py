@@ -39,13 +39,17 @@ class ConfigManager:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
     def _fill_skeleton(self, user_cfg: Dict[str, Any]) -> Dict[str, Any]:
+        # 修复：先拷贝骨架，再用用户数据覆盖（子字典先骨架再用户，保留默认字段）
         full = EMPTY_SKELETON.copy()
-        # 用户配置覆盖骨架默认值
-        full.update(user_cfg)
-        # 子字典合并，不覆盖用户已有数据
-        for top_key, sub_dict in EMPTY_SKELETON.items():
-            if isinstance(sub_dict, dict) and top_key in user_cfg:
-                full[top_key].update(user_cfg[top_key])
+        for top_key, skeleton_sub in EMPTY_SKELETON.items():
+            if isinstance(skeleton_sub, dict):
+                # 先填充骨架默认值，再叠加用户配置，缺失key保留默认
+                sub_target = full[top_key]
+                sub_target.update(user_cfg.get(top_key, {}))
+            else:
+                # 非字典顶层键直接覆盖
+                if top_key in user_cfg:
+                    full[top_key] = user_cfg[top_key]
         return full
 
 # 全局单例

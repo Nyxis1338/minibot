@@ -29,7 +29,9 @@ class OneBotModel(BaseModel):
     listen_port: int
     token: str
 
+# 修复：增加provider_type
 class LLMProviderModel(BaseModel):
+    provider_type: str
     api_key: str
     base_url: str
     model: str
@@ -134,7 +136,6 @@ async def del_group(gid: str = Query()):
     cfg = cfg_mgr.load_file()
     if gid in cfg["group_rules"]:
         del cfg["group_rules"][gid]
-        cfg_mgr.save_file(cfg)
     return {"code": 0, "msg": "群配置已删除"}
 
 @router.get("/llm/list")
@@ -142,6 +143,7 @@ async def list_llm():
     cfg = cfg_mgr.load_file()
     return {"code": 0, "data": cfg["llm_providers"]}
 
+# 修复：接收前端传来的provider_type并存入配置，不再缺失字段
 @router.post("/llm/save")
 async def save_llm(name: str = Query(), item: LLMProviderModel = Body()):
     cfg = cfg_mgr.load_file()
@@ -155,7 +157,7 @@ async def del_llm(name: str = Query()):
     if name in cfg["llm_providers"]:
         del cfg["llm_providers"][name]
         cfg_mgr.save_file(cfg)
-    return {"code": 0, "msg": "模型配置已删除"}
+    return {"code": 0, "msg": "模型已删除"}
 
 # LLM连通测试，区分402欠费提示
 @router.post("/llm/test_connect")
