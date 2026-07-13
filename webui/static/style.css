@@ -35,14 +35,13 @@ h3{
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-/* 表单通用：输入框、下拉、文本域 */
+/* 统一所有input + 下拉 + 文本域 */
 label{
     display: block;
     margin: 10px 0 6px;
     color: #444;
 }
-input[type="text"],
-input[type="number"],
+input,
 textarea,
 select{
     width: 100%;
@@ -132,19 +131,18 @@ button{
     padding: 6px 10px;
 }
 
-/* 美化复选框（群弹窗专用） */
+/* 美化复选框，覆盖全局input宽度100%的冲突 */
+.checkbox-row input[type="checkbox"]{
+    width: 20px;
+    transform: scale(1.3);
+    accent-color: #00b42a;
+    cursor: pointer;
+}
 .checkbox-row{
     display: flex;
     align-items: center;
     gap: 12px;
     margin: 16px 0;
-}
-.checkbox-row input[type="checkbox"]{
-    width: 20px;
-    height: 20px;
-    transform: scale(1.3);
-    accent-color: #00b42a;
-    cursor: pointer;
 }
 .checkbox-row label{
     margin: 0;
