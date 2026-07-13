@@ -60,19 +60,27 @@ def get_llm_by_name(name: str):
     llm_list = cfg["llm_providers"]
     if name not in llm_list:
         return None
-    # 取出单条模型配置
     llm_info = llm_list[name]
-    # 若配置缺失provider_type，直接返回空避免KeyError崩溃
     if "provider_type" not in llm_info:
-        print(f"[Config Err] 模型【{name}】缺失provider_type字段，请在WebUI重新编辑保存")
-        return None
-    p_type = llm_info["provider_type"]
+        print(f"[Config Warn] 模型【{name}】缺失provider_type，自动推断兼容")
+        if name.startswith("deepseek"):
+            p_type = "deepseek"
+        elif name.startswith("zhipu") or name == "glm":
+            p_type = "zhipu"
+        elif name.startswith("qwen"):
+            p_type = "qwen"
+        else:
+            print(f"[Config Err] 模型【{name}】无法自动识别厂商，请WebUI编辑保存")
+            return None
+    else:
+        p_type = llm_info["provider_type"]
+
     api_key = llm_info["api_key"]
     base_url = llm_info["base_url"]
     model = llm_info["model"]
     temperature = llm_info["temperature"]
     max_tokens = llm_info["max_tokens"]
-    # 根据厂商类型导入对应实现
+
     if p_type == "deepseek":
         from llm.providers.deepseek_provider import DeepSeekProvider
         return DeepSeekProvider(api_key, base_url, model, temperature, max_tokens)

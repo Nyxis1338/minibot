@@ -3,7 +3,6 @@ import random
 import json
 from core.runtime_cfg import get_group_runtime, update_group_context
 from adapters.onebot_v11.ws_server import OneBotWSAdapter
-from core.bot_state import get_llm_by_name
 
 ws_adapter: OneBotWSAdapter | None = None
 group_last_send = {}
@@ -32,13 +31,15 @@ async def handle_event(event: dict):
     if g_cfg is None:
         print(f"[Skip] 群{gid} 无配置，跳过")
         return
-    cooldown = g_cfg["cooldown_sec"]
-    prob = g_cfg["random_prob"]
-    sys_prompt = g_cfg["bind_persona"]
-    target_llm_name = g_cfg["bind_llm"]
-    enable_at = g_cfg["enable_at_reply"]
-    enable_random = g_cfg["enable_random_chat"]
-    ctx_max = g_cfg["context_max_len"]
+    # 安全读取所有群配置字段，缺失使用默认值，杜绝KeyError
+    cooldown = g_cfg.get("cooldown_sec", 120)
+    prob = g_cfg.get("random_prob", 0.12)
+    sys_prompt = g_cfg.get("bind_persona", "")
+    target_llm_name = g_cfg.get("bind_llm", "")
+    enable_at = g_cfg.get("enable_at_reply", True)
+    enable_random = g_cfg.get("enable_random_chat", True)
+    ctx_max = g_cfg.get("context_max_len")
+
     # 冷却判断
     now = asyncio.get_event_loop().time()
     last = group_last_send.get(gid, 0)
@@ -46,6 +47,9 @@ async def handle_event(event: dict):
     if diff < cooldown:
         print(f"[Skip] 群{gid} 冷却中，剩余 {cooldown - diff:.1f}s，阈值{cooldown}")
         return
+
+    # 【关键修复】内部延迟导入，解除循环依赖
+    from core.bot_state import get_llm_by_name
     llm_client = get_llm_by_name(target_llm_name)
     if llm_client is None:
         print(f"[LLM] 群{gid} 绑定模型 {target_llm_name} 未初始化，跳过")

@@ -6,6 +6,7 @@
   },
   "llm_providers": {
     "deepseek": {
+      "provider_type": "deepseek",
       "api_key": "sk-f8adf4015fb548169eb4d3c19afc7537",
       "base_url": "https://api.deepseek.com/v1",
       "model": "deepseek-v4-flash",
@@ -13,6 +14,7 @@
       "max_tokens": 600
     },
     "zhipu": {
+      "provider_type": "zhipu",
       "api_key": "dda71b41c71c4345b1be3f5a4c0f101f.9E2KKQVI8fK48VT6",
       "base_url": "https://open.bigmodel.cn/api/paas/v4",
       "model": "glm-4-flash",
@@ -20,6 +22,7 @@
       "max_tokens": 600
     },
     "qwen": {
+      "provider_type": "qwen",
       "api_key": "sk-ws-H.EMXIPPE.Q9o3.MEQCIG6iR4wbE21AO9uhtQCviJpFF9ttVR2dY6kGhGwCEqXeAiBk0Jrh2nn9bl9Psk1VYjuA0J3wZhOFzoW-ndRACuoDTg",
       "base_url": "https://ws-oacfyfis2eq1zqak.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
       "model": "qwen-turbo",
@@ -40,7 +43,7 @@
       "cooldown_sec": 30,
       "enable_at_reply": true,
       "enable_random_chat": true,
-      "context_max_len": 2
+      "context_max_len": 3
     }
   }
 }

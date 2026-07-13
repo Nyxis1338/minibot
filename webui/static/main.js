@@ -118,11 +118,19 @@ function renderLLMList(){
             </div>`;
         row.querySelector(".btn-blue").onclick=()=>{
             currentEditLLM=name;
-            editCachedProviderType = item.provider_type;
+            // 修复：不存在provider_type则自动推断，杜绝undefined
+            if("provider_type" in item){
+                editCachedProviderType = item.provider_type;
+            }else{
+                if(name.startsWith("deepseek")) editCachedProviderType = "deepseek";
+                else if(name.startsWith("zhipu") || name==="glm") editCachedProviderType = "zhipu";
+                else if(name.startsWith("qwen")) editCachedProviderType = "qwen";
+                else editCachedProviderType = "";
+            }
             document.getElementById("llmModalTitle").innerText="编辑模型厂商";
             const nameInput = document.getElementById("llmName");
             nameInput.value=name;
-            nameInput.disabled = true; // 编辑禁止修改厂商标识
+            nameInput.disabled = true;
             document.getElementById("llmKey").value=item.api_key;
             document.getElementById("llmUrl").value=item.base_url;
             document.getElementById("llmModel").value=item.model;
@@ -130,6 +138,7 @@ function renderLLMList(){
             document.getElementById("llmMaxTok").value=item.max_tokens;
             openModal("llmModal");
         }
+
         row.querySelector(".btn-red").onclick=async ()=>{
             if(!confirm(`确认删除厂商【${name}】？`))return;
             await fetch(`${base}/llm/del?name=${name}`,{method:"DELETE"});
@@ -163,10 +172,18 @@ async function submitLlmForm(){
     if(!name){toast("厂商标识不能为空","err");return;}
     let provider_type;
     if(currentEditLLM !== ""){
-        // 编辑模式：沿用旧的provider_type
         provider_type = editCachedProviderType;
+        // 兜底：缓存为空重新推断
+        if(!provider_type){
+            if(name.startsWith("deepseek")) provider_type = "deepseek";
+            else if(name.startsWith("zhipu") || name==="glm") provider_type = "zhipu";
+            else if(name.startsWith("qwen")) provider_type = "qwen";
+            else {
+                toast("无法自动匹配厂商类型，请修改名称","err");
+                return;
+            }
+        }
     }else{
-        // 【新增场景兜底规则】按厂商标识自动推断厂商类型
         if(name.startsWith("deepseek")) provider_type = "deepseek";
         else if(name.startsWith("zhipu") || name==="glm") provider_type = "zhipu";
         else if(name.startsWith("qwen")) provider_type = "qwen";
@@ -193,6 +210,7 @@ async function submitLlmForm(){
         refreshAllConfig();
     }else toast(ret.msg,"err");
 }
+
 // ========== 人设 ==========
 function openPersonaModal(){
     currentEditPersona="";
