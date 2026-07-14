@@ -37,16 +37,30 @@ async def handle_event(event: dict):
     sender = str(event["user_id"])
     if sender == bot_qq:
         return
+
     # 使用utils安全读取，自带默认值，杜绝KeyError
     g_cfg = get_group_runtime_safe(gid)
     if not g_cfg:
         print(f"[Skip] 群{gid} 无配置，跳过")
         return
+
+    # ========== 新增：拦截@全体成员逻辑 ==========
+    msg_segments = event.get("message", [])
+    has_at_all = False
+    for seg in msg_segments:
+        if seg.get("type") == "at" and seg["data"].get("qq") == "all":
+            has_at_all = True
+            break
+    if has_at_all:
+        print(f"[Skip] 群{gid} 消息包含@全体成员，拦截AI回复防风控")
+        return
+    # ==========================================
+
     cooldown = g_cfg["cooldown_sec"]
     prob = g_cfg["random_prob"]
     sys_prompt = g_cfg["bind_persona"]
-    
     target_llm_name = g_cfg["bind_llm"]
+
     # 新增提前校验空模型
     if not target_llm_name or target_llm_name.strip() == "":
         print(f"[Skip] 群{gid} 绑定模型名称为空，跳过AI调用")
@@ -66,14 +80,12 @@ async def handle_event(event: dict):
     if diff < cooldown:
         print(f"[Skip] 群{gid} 冷却中，剩余 {cooldown - diff:.1f}s，阈值{cooldown}")
         return
-    llm_client = get_llm_by_name(target_llm_name)
-    if llm_client is None:
-        print(f"[LLM] 群{gid} 绑定模型 {target_llm_name} 未初始化，跳过")
-        return
+
     at_tag = f"[CQ:at,qq={bot_qq}]"
     is_at = at_tag in raw_msg
     clean_msg = raw_msg.replace(at_tag, "").strip()
     reply_text = None
+
     # @触发分支
     if is_at:
         if not enable_at:
@@ -112,7 +124,7 @@ async def handle_event(event: dict):
         send_json = json.dumps(send_data)
         conn_count = len(ws_adapter.clients)
         if conn_count == 0:
-            print(f"[Send Warn] 群{gid} 无NapCat连接")
+            print(f"[Send Warn] 群{gid} 无NapCat/Lagrange连接")
             return
         for cli in ws_adapter.clients:
             try:
