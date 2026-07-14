@@ -12,7 +12,7 @@ def set_ws_adapter(adapter: OneBotWSAdapter):
     global ws_adapter
     ws_adapter = adapter
 
-# 上下文更新函数提前声明，统一规范
+# 上下文更新函数仅保留这一处，删除文末重复版本
 async def update_group_context(gid: str, role: str, content: str, max_len: int):
     from core.utils import get_full_config
     from config.config_mgr import cfg_mgr
@@ -134,16 +134,3 @@ async def handle_event(event: dict):
                 print(f"[Send Fail] 群{gid} 单连接发送失败")
                 continue
         group_last_send[gid] = now
-
-# 保留原有上下文更新函数，移至文件上方规范排版
-async def update_group_context(gid: str, role: str, content: str, max_len: int):
-    from core.utils import get_full_config
-    from config.config_mgr import cfg_mgr
-    cfg = get_full_config()
-    group = cfg["group_rules"].setdefault(gid, {})
-    ctx = group.setdefault("context", [])
-    ctx.append({"role": role, "content": content})
-    if len(ctx) > max_len:
-        ctx = ctx[-max_len:]
-    cfg["group_rules"][gid]["context"] = ctx
-    cfg_mgr.save_file(cfg)
