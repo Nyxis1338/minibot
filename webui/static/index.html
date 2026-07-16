@@ -3,153 +3,140 @@
 <head>
 <meta charset="UTF-8">
 <title>MiniBot 配置面板</title>
-<link rel="stylesheet" href="style.css">
+<!-- 引入Tailwind CDN，不再需要style.css -->
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<div class="container">
-    <h2>MiniBot AI机器人管理面板</h2>
-
+<body class="bg-slate-100 p-5 text-sm text-gray-800">
+<div class="max-w-[1240px] mx-auto">
+    <h2 class="text-xl font-semibold text-gray-900 mb-5">MiniBot AI机器人管理面板</h2>
     <!-- 机器人启停 -->
-    <div class="card">
-        <h3>🤖 机器人总控制</h3>
-        <button class="btn-green" onclick="startBot()">启动机器人WS</button>
-        <button class="btn-red" onclick="stopBot()">停止机器人WS</button>
-        <div id="botStatus" style="margin-top:10px;"></div>
+    <div class="bg-white rounded-xl p-5 shadow-md mb-4">
+        <h3 class="text-base font-medium text-gray-700 mb-3">🤖 机器人总控制</h3>
+        <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition" onclick="startBot()">启动机器人WS</button>
+        <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition ml-2" onclick="stopBot()">停止机器人WS</button>
+        <div id="botStatus" class="mt-3"></div>
     </div>
-
     <!-- OneBot WS配置 -->
-    <div class="card">
-        <h3>⚙️ One WS 反向连接配置</h3>
-        <label>listen_host 监听地址</label>
-        <input id="obHost" placeholder="0.0.0.0 / 127.0.0.1">
-        <label>listen_port 监听端口</label>
-        <input id="obPort" type="number">
-        <label>token 鉴权密钥</label>
-        <input id="obToken">
-        <button class="btn-blue" onclick="saveOneBotConfig()">保存OneBot配置</button>
+    <div class="bg-white rounded-xl p-5 shadow-md mb-4">
+        <h3 class="text-base font-medium text-gray-700 mb-3">⚙️ One WS 反向连接配置</h3>
+        <label class="block mt-2 mb-1 text-gray-600">listen_host 监听地址</label>
+        <input id="obHost" placeholder="0.0.0.0 / 127.0.0.1" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">listen_port 监听端口</label>
+        <input id="obPort" type="number" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">token 鉴权密钥</label>
+        <input id="obToken" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition mt-3" onclick="saveOneBotConfig()">保存OneBot配置</button>
     </div>
-
     <!-- 配置导入导出 -->
-    <div class="card">
-        <h3>💾 配置导入导出</h3>
-        <button class="btn-blue" onclick="exportAllConfig()">导出全部配置JSON</button>
-
+    <div class="bg-white rounded-xl p-5 shadow-md mb-4">
+        <h3 class="text-base font-medium text-gray-700 mb-3">💾 配置导入导出</h3>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition" onclick="exportAllConfig()">导出全部配置JSON</button>
     </div>
-
     <!-- 大模型厂商 -->
-    <div class="card">
-        <h3>💜 大模型厂商配置</h3>
-        <button class="btn-green" onclick="openLlmModal()">新增模型厂商</button>
-        <div id="llmListWrap"></div>
-        <!-- 新增：导出LLM厂商代码按钮 -->
-        <button class="btn-gray" onclick="exportLlmProviderCode()">导出LLM厂商Provider文本</button>
+    <div class="bg-white rounded-xl p-5 shadow-md mb-4">
+        <h3 class="text-base font-medium text-gray-700 mb-3">💜 大模型厂商配置</h3>
+        <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition" onclick="openLlmModal()">新增模型厂商</button>
+        <div id="llmListWrap" class="my-3"></div>
+        <button class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition mt-2" onclick="exportLlmProviderCode()">导出LLM厂商Provider文本</button>
     </div>
-
     <!-- 人设库 -->
-    <div class="card">
-        <h3>🐦 机器人预设人设</h3>
-        <button class="btn-green" onclick="openPersonaModal()">新增人设</button>
-        <div id="personaListWrap"></div>
+    <div class="bg-white rounded-xl p-5 shadow-md mb-4">
+        <h3 class="text-base font-medium text-gray-700 mb-3">🐦 机器人预设人设</h3>
+        <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition" onclick="openPersonaModal()">新增人设</button>
+        <div id="personaListWrap" class="my-3"></div>
     </div>
-
-    <!-- QQ群规则（需求3：列表增加随机/冷却展示） -->
-    <div class="card">
-        <h3>🏠 QQ群独立对话规则</h3>
-        <button class="btn-green" onclick="openGroupModal()">新增群配置</button>
-        <div id="groupListWrap"></div>
+    <!-- QQ群独立对话规则 -->
+    <div class="bg-white rounded-xl p-5 shadow-md mb-4">
+        <h3 class="text-base font-medium text-gray-700 mb-3">🏠 QQ群独立对话规则</h3>
+        <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition" onclick="openGroupModal()">新增群配置</button>
+        <div id="groupListWrap" class="my-3"></div>
     </div>
 </div>
-
 <!-- LLM弹窗 -->
-<div class="modal-mask" id="llmModal">
-    <div class="modal-panel">
-        <div class="modal-head">
-            <h3 id="llmModalTitle">新增模型厂商</h3>
-            <button class="modal-close" onclick="closeModal('llmModal')">×</button>
+<div class="fixed inset-0 bg-black/45 hidden grid place-items-center z-[99998]" id="llmModal">
+    <div class="bg-white rounded-xl p-6 w-[min(580px,94vw)]">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="llmModalTitle" class="text-base font-medium">新增模型厂商</h3>
+            <button class="text-gray-500 text-xl hover:text-gray-900 bg-transparent p-0" onclick="closeModal('llmModal')">×</button>
         </div>
-        <label>厂商标识（英文，编辑不可改）</label>
-        <input id="llmName">
-        <label>厂商类型 provider_type</label>
-        <select id="llmProviderType">
+        <label class="block mt-2 mb-1 text-gray-600">厂商标识（英文，编辑不可改）</label>
+        <input id="llmName" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">厂商类型 provider_type</label>
+        <select id="llmProviderType" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
             <option value="deepseek">deepseek</option>
             <option value="zhipu">zhipu</option>
             <option value="qwen">qwen</option>
             <option value="other">other(自定义)</option>
         </select>
-
-        <label>API Key</label>
-        <input id="llmKey">
-        <label>Base URL</label>
-        <input id="llmUrl">
-        <label>model 模型名称</label>
-        <input id="llmModel">
-        <label>temperature 温度</label>
-        <input id="llmTemp" step="0.1" type="number">
-        <label>max_tokens 最大输出长度</label>
-        <input id="llmMaxTok" type="number">
-        <button class="btn-blue" onclick="testLLMConnect()">测试接口连通</button>
-        <div style="margin-top:10px;">
-            <button class="btn-green" onclick="submitLlmForm()">保存</button>
-            <button class="btn-red" onclick="closeModal('llmModal')">取消</button>
+        <label class="block mt-2 mb-1 text-gray-600">API Key</label>
+        <input id="llmKey" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">Base URL</label>
+        <input id="llmUrl" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">model 模型名称</label>
+        <input id="llmModel" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">temperature 温度</label>
+        <input id="llmTemp" step="0.1" type="number" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">max_tokens 最大输出长度</label>
+        <input id="llmMaxTok" type="number" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition mt-3" onclick="testLLMConnect()">测试接口连通</button>
+        <div class="mt-3">
+            <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition" onclick="submitLlmForm()">保存</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition ml-2" onclick="closeModal('llmModal')">取消</button>
         </div>
     </div>
 </div>
-
 <!-- 人设弹窗 -->
-<div class="modal-mask" id="personaModal">
-    <div class="modal-panel">
-        <div class="modal-head">
-            <h3 id="personaModalTitle">新增人设</h3>
-            <button class="modal-close" onclick="closeModal('personaModal')">×</button>
+<div class="fixed inset-0 bg-black/45 hidden grid place-items-center z-[99998]" id="personaModal">
+    <div class="bg-white rounded-xl p-6 w-[min(580px,94vw)]">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="personaModalTitle" class="text-base font-medium">新增人设</h3>
+            <button class="text-gray-500 text-xl hover:text-gray-900 bg-transparent p-0" onclick="closeModal('personaModal')">×</button>
         </div>
-        <label>人设名称</label>
-        <input id="personaName">
-        <label>系统提示词</label>
-        <textarea id="personaPrompt"></textarea>
-        <div style="margin-top:10px;">
-            <button class="btn-green" onclick="submitPersonaForm()">保存</button>
-            <button class="btn-red" onclick="closeModal('personaModal')">取消</button>
-        </div>
-    </div>
-</div>
-
-<!-- 群配置弹窗（复选框美化） -->
-<div class="modal-mask" id="groupModal">
-    <div class="modal-panel">
-        <div class="modal-head">
-            <h3 id="groupModalTitle">新增群配置</h3>
-            <button class="modal-close" onclick="closeModal('groupModal')">×</button>
-        </div>
-        <label>目标群号</label>
-        <input id="editGroupId" type="number">
-        <label>绑定大模型</label>
-        <select id="groupBindLLM"></select>
-        <label>绑定人设</label>
-        <select id="groupBindPersona"></select>
-        <label>随机插话概率(0~1)</label>
-        <input id="groupProb" step="0.01" type="number">
-        <label>发言冷却秒数</label>
-        <input id="groupCd" type="number">
-        <div class="checkbox-row">
-            <input type="checkbox" id="switchAtReply">
-            <label for="switchAtReply">开启@自动回复</label>
-        </div>
-        <div class="checkbox-row">
-            <input type="checkbox" id="switchRandomChat">
-            <label for="switchRandomChat">开启随机插话</label>
-        </div>
-        <label>上下文记忆轮次</label>
-        <input id="groupCtxLen" type="number">
-        <div style="margin-top:10px;">
-            <button class="btn-green" onclick="submitGroupForm()">保存</button>
-            <button class="btn-red" onclick="closeModal('groupModal')">取消</button>
+        <label class="block mt-2 mb-1 text-gray-600">人设名称</label>
+        <input id="personaName" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">系统提示词</label>
+        <textarea id="personaPrompt" class="w-full p-2.5 border border-slate-200 rounded-lg min-h-[90px] resize-y focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"></textarea>
+        <div class="mt-3">
+            <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition" onclick="submitPersonaForm()">保存</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition ml-2" onclick="closeModal('personaModal')">取消</button>
         </div>
     </div>
 </div>
-
+<!-- 群配置弹窗 -->
+<div class="fixed inset-0 bg-black/45 hidden grid place-items-center z-[99998]" id="groupModal">
+    <div class="bg-white rounded-xl p-6 w-[min(580px,94vw)]">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="groupModalTitle" class="text-base font-medium">新增群配置</h3>
+            <button class="text-gray-500 text-xl hover:text-gray-900 bg-transparent p-0" onclick="closeModal('groupModal')">×</button>
+        </div>
+        <label class="block mt-2 mb-1 text-gray-600">目标群号</label>
+        <input id="editGroupId" type="number" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">绑定大模型</label>
+        <select id="groupBindLLM" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"></select>
+        <label class="block mt-2 mb-1 text-gray-600">绑定人设</label>
+        <select id="groupBindPersona" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"></select>
+        <label class="block mt-2 mb-1 text-gray-600">随机插话概率(0~1)</label>
+        <input id="groupProb" step="0.01" type="number" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <label class="block mt-2 mb-1 text-gray-600">发言冷却秒数</label>
+        <input id="groupCd" type="number" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <div class="flex items-center gap-3 my-4">
+            <input type="checkbox" id="switchAtReply" class="w-5 h-5 scale-125 accent-green-500">
+            <label for="switchAtReply" class="m-0">开启@自动回复</label>
+        </div>
+        <div class="flex items-center gap-3 my-4">
+            <input type="checkbox" id="switchRandomChat" class="w-5 h-5 scale-125 accent-green-500">
+            <label for="switchRandomChat" class="m-0">开启随机插话</label>
+        </div>
+        <label class="block mt-2 mb-1 text-gray-600">上下文记忆轮次</label>
+        <input id="groupCtxLen" type="number" class="w-full p-2.5 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none">
+        <div class="mt-3">
+            <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition" onclick="submitGroupForm()">保存</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition ml-2" onclick="closeModal('groupModal')">取消</button>
+        </div>
+    </div>
+</div>
 <!-- Toast弹窗容器 -->
-<div class="toast-box" id="toastBox"></div>
-
+<div class="fixed top-5 right-6 z-[99999]" id="toastBox"></div>
 <script src="main.js"></script>
 </body>
 </html>
